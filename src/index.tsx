@@ -49,6 +49,11 @@ interface RequestPromise {
   cancel(): void;
 }
 
+interface APICheckerPromise {
+  promise: Promise<Response>;
+  cancel(): void;
+}
+
 export default class InstagramEmbed extends React.PureComponent<Props, State> {
   public static defaultProps = {
     hideCaption: false,
@@ -58,6 +63,7 @@ export default class InstagramEmbed extends React.PureComponent<Props, State> {
   };
 
   private request: RequestPromise | null = null;
+  private apiChecker: APICheckerPromise | null = null;
   private timer?: number;
 
   constructor(props: Props) {
@@ -72,7 +78,8 @@ export default class InstagramEmbed extends React.PureComponent<Props, State> {
       if (this.props.injectScript && !document.getElementById('react-instagram-embed-script')) {
         this.injectScript();
       }
-      this.checkAPI().then(() => {
+      this.apiChecker = this.checkAPI();
+      this.apiChecker.promise.then(() => {
         this.fetchEmbed(this.getQueryParams(this.props));
       });
     }
@@ -102,6 +109,10 @@ export default class InstagramEmbed extends React.PureComponent<Props, State> {
 
   // Public
   public cancel = (): void => {
+    if (this.apiChecker) {
+      this.apiChecker.cancel();
+    }
+
     if (this.request) {
       this.request.cancel();
     }
@@ -147,8 +158,10 @@ export default class InstagramEmbed extends React.PureComponent<Props, State> {
     }
   }
 
-  private checkAPI(): Promise<any> {
-    return new Promise(resolve => {
+  private checkAPI(): APICheckerPromise {
+    const apiChecker = {} as APICheckerPromise;
+
+    apiChecker.promise = new Promise((resolve, reject) => {
       (function checkAPI(self: InstagramEmbed) {
         self.timer = window.setTimeout(() => {
           if (window.instgrm) {
@@ -159,7 +172,13 @@ export default class InstagramEmbed extends React.PureComponent<Props, State> {
           }
         }, 20);
       })(this);
+
+      apiChecker.cancel = () => {
+        return reject(new Error('Cancelled'));
+      };
     });
+
+    return apiChecker;
   }
 
   private getQueryParams({
