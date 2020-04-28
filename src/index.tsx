@@ -79,9 +79,11 @@ export default class InstagramEmbed extends React.PureComponent<Props, State> {
         this.injectScript();
       }
       this.apiChecker = this.checkAPI();
-      this.apiChecker.promise.then(() => {
-        this.fetchEmbed(this.getQueryParams(this.props));
-      });
+      this.apiChecker.promise
+        .then(() => {
+          this.fetchEmbed(this.getQueryParams(this.props));
+        })
+        .catch(this.handleFetchFailure);
     }
   }
 

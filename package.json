@@ -1,6 +1,6 @@
 {
-  "name": "react-instagram-embed",
-  "version": "1.5.1",
+  "name": "@dnd-it-cd2/react-instagram-embed",
+  "version": "1.5.3",
   "description": "React embedding Instagram posts component",
   "main": "lib/index.js",
   "module": "es/index.js",
